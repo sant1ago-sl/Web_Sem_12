@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Panel de Pruebas - Taller Mecánico API</title>
+<style>
+  :root {
+    --bg:#f5f6f8; --card:#fff; --ink:#1b1f27; --muted:#667085; --line:#e4e7ec;
+    --ok:#12805c; --okbg:#e3f6ee; --bad:#b42318; --badbg:#fde8e6; --run:#175cd3; --runbg:#e6efff;
+    --accent:#d9480f; --code:#f0f2f5;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg:#12141a; --card:#1b1e26; --ink:#eceef2; --muted:#98a2b3; --line:#2b2f3a;
+      --ok:#47cd9b; --okbg:#12352a; --bad:#ff8a80; --badbg:#3d1b18; --run:#84adff; --runbg:#1a2a4a;
+      --accent:#ff8a4c; --code:#252934;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg:#12141a; --card:#1b1e26; --ink:#eceef2; --muted:#98a2b3; --line:#2b2f3a;
+    --ok:#47cd9b; --okbg:#12352a; --bad:#ff8a80; --badbg:#3d1b18; --run:#84adff; --runbg:#1a2a4a;
+    --accent:#ff8a4c; --code:#252934;
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif; }
+  .wrap { max-width:1060px; margin:0 auto; padding:24px 16px 64px; }
+  header { display:flex; flex-wrap:wrap; gap:12px; align-items:center; justify-content:space-between; margin-bottom:20px; }
+  h1 { font-size:22px; margin:0; letter-spacing:-.01em; }
+  h1 span { color:var(--accent); }
+  .sub { color:var(--muted); font-size:13px; margin-top:2px; }
+  .panel { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:16px; margin-bottom:16px; }
+  .row { display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
+  input[type=text] { flex:1 1 280px; min-width:0; padding:10px 12px; border:1px solid var(--line); border-radius:8px; background:var(--bg); color:var(--ink); font:inherit; }
+  button { padding:10px 16px; border-radius:8px; border:1px solid var(--line); background:var(--card); color:var(--ink); font:inherit; font-weight:600; cursor:pointer; }
+  button.primary { background:var(--accent); border-color:var(--accent); color:#fff; }
+  button:disabled { opacity:.55; cursor:default; }
+  .pill { display:inline-flex; align-items:center; gap:6px; padding:3px 10px; border-radius:99px; font-size:12px; font-weight:700; }
+  .pill.ok { background:var(--okbg); color:var(--ok); }
+  .pill.bad { background:var(--badbg); color:var(--bad); }
+  .pill.run { background:var(--runbg); color:var(--run); }
+  .pill.idle { background:var(--code); color:var(--muted); }
+  .dot { width:8px; height:8px; border-radius:50%; background:currentColor; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(120px,1fr)); gap:10px; }
+  .stat { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:12px 14px; }
+  .stat b { display:block; font-size:24px; line-height:1.2; }
+  .stat small { color:var(--muted); }
+  .cover { display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; }
+  .code { font-family:ui-monospace,Consolas,monospace; font-size:13px; padding:4px 10px; border-radius:8px; border:1px solid var(--line); color:var(--muted); }
+  .code.hit { background:var(--okbg); border-color:transparent; color:var(--ok); font-weight:700; }
+  .group { margin:18px 0 6px; font-weight:700; color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:.08em; }
+  .test { background:var(--card); border:1px solid var(--line); border-radius:10px; margin-bottom:8px; overflow:hidden; }
+  .test summary { list-style:none; display:grid; grid-template-columns:auto 62px 1fr auto auto; gap:10px; align-items:center; padding:10px 12px; cursor:pointer; }
+  .test summary::-webkit-details-marker { display:none; }
+  .method { font:700 12px ui-monospace,Consolas,monospace; color:var(--accent); }
+  .name { min-width:0; }
+  .name b { display:block; font-weight:600; }
+  .name small { color:var(--muted); font-family:ui-monospace,Consolas,monospace; font-size:12px; word-break:break-all; }
+  .exp { font:12px ui-monospace,Consolas,monospace; color:var(--muted); text-align:right; }
+  .detail { border-top:1px solid var(--line); padding:10px 12px; background:var(--code); }
+  .detail pre { margin:6px 0 0; white-space:pre-wrap; word-break:break-word; font:12px/1.5 ui-monospace,Consolas,monospace; max-height:240px; overflow:auto; }
+  .detail label { font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; }
+  .alert { padding:12px 14px; border-radius:10px; background:var(--badbg); color:var(--bad); margin-bottom:16px; font-size:14px; }
+  .hidden { display:none; }
+  @media (max-width:640px) {
+    .test summary { grid-template-columns:auto 1fr auto; }
+    .method, .exp { display:none; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1><span>Taller Mecánico</span> · Panel de pruebas de la API</h1>
+      <div class="sub">Ejecuta cada endpoint y verifica los códigos 200, 201, 204, 400, 404 y 409. Las pruebas crean y borran sus propios datos.</div>
+    </div>
+    <div class="row"><a href="/swagger" target="_blank"><button>Abrir Swagger</button></a><button id="theme" aria-label="Cambiar tema">Tema</button></div>
+  </header>
+
+  <div class="panel">
+    <div class="row">
+      <input type="text" id="base" aria-label="URL base de la API" placeholder="https://tu-app.onrender.com">
+      <button id="ping">Probar conexión</button>
+      <button id="run" class="primary">Ejecutar todas las pruebas</button>
+      <span id="conn" class="pill idle"><span class="dot"></span>Sin probar</span>
+    </div>
+    <div class="sub" style="margin-top:8px">Por defecto prueba la misma API que sirve esta página. Para probar otra (por ejemplo la de Render) pega su URL; esa API debe permitir este origen en <code>Cors__AllowedOrigin</code>.</div>
+  </div>
+
+  <div id="alert" class="alert hidden"></div>
+
+  <div class="grid">
+    <div class="stat"><b id="sTotal">0</b><small>Pruebas</small></div>
+    <div class="stat"><b id="sOk" style="color:var(--ok)">0</b><small>Correctas</small></div>
+    <div class="stat"><b id="sBad" style="color:var(--bad)">0</b><small>Fallidas</small></div>
+    <div class="stat"><b id="sTime">0 ms</b><small>Tiempo total</small></div>
+  </div>
+  <div class="cover" id="cover"></div>
+
+  <div id="list"></div>
+</div>
+
+<script>
+const $ = s => document.querySelector(s);
+const baseInput = $('#base');
+const saved = (() => { try { return localStorage.getItem('apiBase'); } catch { return null; } })();
+baseInput.value = saved || (location.protocol.startsWith('http') ? location.origin : 'http://localhost:5062');
+
+$('#theme').onclick = () => {
+  const r = document.documentElement;
+  const dark = r.dataset.theme ? r.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+  r.dataset.theme = dark ? 'light' : 'dark';
+};
+
+const base = () => baseInput.value.trim().replace(/\/+$/, '');
+const rand = () => Math.random().toString(36).slice(2, 6).toUpperCase();
+
+// Estado compartido entre pruebas encadenadas
+const ctx = {};
+
+// [grupo, nombre, método, ruta(ctx), cuerpo(ctx), esperado, después(res, ctx)]
+const T = [
+  ['Vehículos · lectura', 'Listar vehículos', 'GET', () => '/api/vehiculos', null, 200],
+  ['Vehículos · lectura', 'Filtrar por marca', 'GET', () => '/api/vehiculos?marca=toy', null, 200],
+  ['Vehículos · lectura', 'Obtener vehículo por id', 'GET', () => '/api/vehiculos/1', null, 200],
+  ['Vehículos · lectura', 'Ruta anidada: reparaciones del vehículo', 'GET', () => '/api/vehiculos/1/reparaciones', null, 200],
+  ['Vehículos · lectura', 'Vehículo inexistente', 'GET', () => '/api/vehiculos/999999', null, 404],
+  ['Vehículos · lectura', 'Ruta anidada de vehículo inexistente', 'GET', () => '/api/vehiculos/999999/reparaciones', null, 404],
+
+  ['Reparaciones · lectura', 'Listar reparaciones', 'GET', () => '/api/reparaciones', null, 200],
+  ['Reparaciones · lectura', 'Filtrar por estado y costo', 'GET', () => '/api/reparaciones?estado=Pendiente&costoMin=50', null, 200],
+  ['Reparaciones · lectura', 'Obtener reparación por id', 'GET', () => '/api/reparaciones/1', null, 200],
+  ['Reparaciones · lectura', 'Reparación inexistente', 'GET', () => '/api/reparaciones/999999', null, 404],
+
+  ['Vehículos · escritura', 'Crear vehículo válido', 'POST', () => '/api/vehiculos',
+    () => { ctx.placa = 'T' + rand() + '-' + Math.floor(100 + Math.random() * 900); ctx.v = { placa: ctx.placa, marca: 'Mazda', modelo: '3', anio: 2021, propietario: 'Cliente de prueba', telefono: '900000000' }; return ctx.v; },
+    201, (b) => { ctx.vid = b.id; }],
+  ['Vehículos · escritura', 'Placa repetida (regla de negocio)', 'POST', () => '/api/vehiculos', () => ({ ...ctx.v }), 409],
+  ['Vehículos · escritura', 'Datos inválidos (Data Annotations)', 'POST', () => '/api/vehiculos', () => ({ placa: 'A', marca: '', modelo: '3', anio: 1800, propietario: '' }), 400],
+  ['Vehículos · escritura', 'PUT con id de ruta distinto al del cuerpo', 'PUT', () => `/api/vehiculos/${ctx.vid}`, () => ({ ...ctx.v, id: ctx.vid + 1 }), 400],
+  ['Vehículos · escritura', 'PUT de vehículo inexistente', 'PUT', () => '/api/vehiculos/999999', () => ({ ...ctx.v, id: 999999 }), 404],
+  ['Vehículos · escritura', 'Actualizar vehículo', 'PUT', () => `/api/vehiculos/${ctx.vid}`, () => ({ ...ctx.v, id: ctx.vid, propietario: 'Cliente actualizado' }), 204],
+
+  ['Reparaciones · escritura', 'Crear con vehículo inexistente (FK)', 'POST', () => '/api/reparaciones', () => ({ vehiculoId: 999999, descripcion: 'x', costo: 10, estado: 'Pendiente' }), 400],
+  ['Reparaciones · escritura', 'Crear con datos inválidos', 'POST', () => '/api/reparaciones', () => ({ vehiculoId: ctx.vid, descripcion: '', costo: -5, estado: 'Otro' }), 400],
+  ['Reparaciones · escritura', 'Crear reparación válida', 'POST', () => '/api/reparaciones',
+    () => { ctx.r = { vehiculoId: ctx.vid, descripcion: 'Cambio de aceite (prueba)', costo: 80, estado: 'Pendiente' }; return ctx.r; },
+    201, (b) => { ctx.rid = b.id; }],
+  ['Reparaciones · escritura', 'PUT con id de ruta distinto al del cuerpo', 'PUT', () => `/api/reparaciones/${ctx.rid}`, () => ({ ...ctx.r, id: ctx.rid + 1 }), 400],
+  ['Reparaciones · escritura', 'Pasar a EnProceso', 'PUT', () => `/api/reparaciones/${ctx.rid}`, () => ({ ...ctx.r, id: ctx.rid, fecha: '2026-11-04', estado: 'EnProceso' }), 204],
+
+  ['Reglas de negocio (409)', 'Borrar vehículo con reparaciones', 'DELETE', () => `/api/vehiculos/${ctx.vid}`, null, 409],
+  ['Reglas de negocio (409)', 'Borrar reparación en proceso', 'DELETE', () => `/api/reparaciones/${ctx.rid}`, null, 409],
+  ['Reglas de negocio (409)', 'Finalizar reparación', 'PUT', () => `/api/reparaciones/${ctx.rid}`, () => ({ ...ctx.r, id: ctx.rid, fecha: '2026-11-04', estado: 'Finalizada' }), 204],
+  ['Reglas de negocio (409)', 'Modificar reparación finalizada', 'PUT', () => `/api/reparaciones/${ctx.rid}`, () => ({ ...ctx.r, id: ctx.rid, fecha: '2026-11-04', estado: 'Pendiente' }), 409],
+
+  ['Limpieza', 'Borrar reparación', 'DELETE', () => `/api/reparaciones/${ctx.rid}`, null, 204],
+  ['Limpieza', 'Borrar vehículo', 'DELETE', () => `/api/vehiculos/${ctx.vid}`, null, 204],
+  ['Limpieza', 'Borrar vehículo ya eliminado', 'DELETE', () => `/api/vehiculos/${ctx.vid}`, null, 404],
+  ['Limpieza', 'Borrar reparación ya eliminada', 'DELETE', () => `/api/reparaciones/${ctx.rid}`, null, 404],
+];
+
+const CODES = [200, 201, 204, 400, 404, 409];
+const esc = s => String(s).replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+
+function render() {
+  const list = $('#list'); list.innerHTML = '';
+  let last = '';
+  T.forEach((t, i) => {
+    if (t[0] !== last) { last = t[0]; list.insertAdjacentHTML('beforeend', `<div class="group">${esc(last)}</div>`); }
+    list.insertAdjacentHTML('beforeend', `
+      <details class="test" id="t${i}">
+        <summary>
+          <span class="pill idle" data-s><span class="dot"></span>Pendiente</span>
+          <span class="method">${t[2]}</span>
+          <span class="name"><b>${esc(t[1])}</b><small data-path>${t[3].length ? '' : ''}</small></span>
+          <span class="exp">esperado ${t[5]}</span>
+          <span class="exp" data-ms></span>
+        </summary>
+        <div class="detail"><label>Solicitud</label><pre data-req>—</pre><label>Respuesta</label><pre data-res>—</pre></div>
+      </details>`);
+  });
+  renderCover(new Set());
+}
+function renderCover(hit) {
+  $('#cover').innerHTML = CODES.map(c => `<span class="code ${hit.has(c) ? 'hit' : ''}">${c}${hit.has(c) ? ' ✓' : ''}</span>`).join('');
+}
+function setPill(el, cls, txt) { el.className = 'pill ' + cls; el.innerHTML = `<span class="dot"></span>${txt}`; }
+function showAlert(msg) { const a = $('#alert'); a.textContent = msg; a.classList.toggle('hidden', !msg); }
+
+async function call(method, path, body) {
+  const opt = { method, headers: {} };
+  if (body) { opt.headers['Content-Type'] = 'application/json'; opt.body = JSON.stringify(body); }
+  const t0 = performance.now();
+  const res = await fetch(base() + path, opt);
+  const text = await res.text();
+  return { status: res.status, ms: Math.round(performance.now() - t0), text };
+}
+
+$('#ping').onclick = async () => {
+  try { localStorage.setItem('apiBase', base()); } catch {}
+  setPill($('#conn'), 'run', 'Conectando…'); showAlert('');
+  try {
+    const r = await call('GET', '/api/vehiculos');
+    if (r.status === 200) setPill($('#conn'), 'ok', `Conectado · ${r.ms} ms`);
+    else setPill($('#conn'), 'bad', `Respondió ${r.status}`);
+  } catch (e) { netError(e); }
+};
+function netError(e) {
+  setPill($('#conn'), 'bad', 'Sin conexión');
+  showAlert(`No se pudo contactar con ${base()}. Causas habituales: la API no está en ejecución, el servicio gratuito aún está despertando (reintenta en un minuto), o CORS rechaza el origen ${location.origin} (configura Cors__AllowedOrigin con ese valor). Detalle: ${e.message}`);
+}
+
+$('#run').onclick = async () => {
+  try { localStorage.setItem('apiBase', base()); } catch {}
+  const btn = $('#run'); btn.disabled = true; showAlert('');
+  Object.keys(ctx).forEach(k => delete ctx[k]);
+  render();
+  setPill($('#conn'), 'run', 'Ejecutando…');
+  let ok = 0, bad = 0, total = 0; const hit = new Set(); const t0 = performance.now();
+  $('#sTotal').textContent = T.length;
+  for (let i = 0; i < T.length; i++) {
+    const [, , method, pathFn, bodyFn, expected, after] = T[i];
+    const el = $('#t' + i);
+    const pill = el.querySelector('[data-s]');
+    setPill(pill, 'run', 'Ejecutando');
+    let path, body;
+    try {
+      path = pathFn(); body = bodyFn ? bodyFn() : null;
+      el.querySelector('[data-path]').textContent = path;
+      el.querySelector('[data-req]').textContent = `${method} ${base()}${path}` + (body ? '\n' + JSON.stringify(body, null, 2) : '');
+      const r = await call(method, path, body);
+      el.querySelector('[data-ms]').textContent = r.ms + ' ms';
+      let pretty = r.text; try { pretty = JSON.stringify(JSON.parse(r.text), null, 2); } catch {}
+      el.querySelector('[data-res]').textContent = `HTTP ${r.status}\n` + (pretty || '(sin cuerpo)');
+      const pass = r.status === expected;
+      if (pass) { ok++; hit.add(r.status); setPill(pill, 'ok', `${r.status} OK`); if (after && r.text) after(JSON.parse(r.text), ctx); }
+      else { bad++; setPill(pill, 'bad', `${r.status} ≠ ${expected}`); el.open = true; }
+    } catch (e) {
+      bad++; setPill(pill, 'bad', 'Error'); el.open = true;
+      el.querySelector('[data-res]').textContent = 'Error de red o CORS: ' + e.message;
+      if (i === 0) { netError(e); total = i + 1; break; }
+    }
+    total = i + 1;
+    $('#sOk').textContent = ok; $('#sBad').textContent = bad; $('#sTime').textContent = Math.round(performance.now() - t0) + ' ms';
+    renderCover(hit);
+  }
+  $('#sOk').textContent = ok; $('#sBad').textContent = bad; $('#sTime').textContent = Math.round(performance.now() - t0) + ' ms';
+  if (!$('#alert').textContent) setPill($('#conn'), bad ? 'bad' : 'ok', bad ? `${bad} fallida(s)` : 'Todo correcto');
+  btn.disabled = false;
+};
+
+render();
+</script>
+</body>
+</html>
+

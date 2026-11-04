@@ -1,0 +1,43 @@
+﻿@host = https://localhost:7000
+### Cambia @host por la URL publicada en la nube para las pruebas finales
+
+GET {{host}}/api/vehiculos
+###
+GET {{host}}/api/vehiculos?marca=toyota
+###
+GET {{host}}/api/vehiculos/1/reparaciones
+###
+POST {{host}}/api/vehiculos
+Content-Type: application/json
+
+{ "placa": "ZZZ-999", "marca": "Mazda", "modelo": "3", "anio": 2021, "propietario": "Pedro Diaz" }
+###
+# 409 placa repetida
+POST {{host}}/api/vehiculos
+Content-Type: application/json
+
+{ "placa": "ABC-123", "marca": "Mazda", "modelo": "3", "anio": 2021, "propietario": "Pedro Diaz" }
+###
+# 400 datos invalidos
+POST {{host}}/api/vehiculos
+Content-Type: application/json
+
+{ "placa": "A", "marca": "", "modelo": "3", "anio": 1800, "propietario": "" }
+###
+# 409 vehiculo con reparaciones
+DELETE {{host}}/api/vehiculos/1
+###
+# 404
+GET {{host}}/api/vehiculos/9999
+###
+# 400 vehiculo inexistente
+POST {{host}}/api/reparaciones
+Content-Type: application/json
+
+{ "vehiculoId": 9999, "descripcion": "Prueba", "costo": 10, "estado": "Pendiente" }
+###
+# 409 reparacion finalizada
+PUT {{host}}/api/reparaciones/1
+Content-Type: application/json
+
+{ "id": 1, "vehiculoId": 1, "descripcion": "Cambio", "costo": 100, "fecha": "2026-10-01", "estado": "Finalizada" }

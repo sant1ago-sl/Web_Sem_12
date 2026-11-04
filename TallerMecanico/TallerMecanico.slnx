@@ -1,0 +1,5 @@
+<Solution>
+  <Folder Name="/api/">
+    <Project Path="api/TallerMecanico.Api.csproj" />
+  </Folder>
+</Solution>

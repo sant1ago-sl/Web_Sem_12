@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(Get-Command python, node -ErrorAction SilentlyContinue)",
+      "PowerShell(Get-Process node, TallerMecanico.Api -ErrorAction SilentlyContinue)",
+      "PowerShell(Stop-Process -Force)",
+      "PowerShell(Get-Command psql, docker -ErrorAction SilentlyContinue)"
+    ]
+  }
+}
