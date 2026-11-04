@@ -1,0 +1,27 @@
+﻿# Blueprint de Render: crea la base PostgreSQL gratuita y la API (Docker) conectadas entre si.
+# En Render: New > Blueprint > elegir este repositorio.
+databases:
+  - name: taller-db
+    plan: free
+    databaseName: tallermecanico
+    user: taller
+
+services:
+  - type: web
+    name: taller-mecanico-api
+    runtime: docker
+    plan: free
+    dockerfilePath: ./TallerMecanico/Dockerfile
+    dockerContext: ./TallerMecanico
+    healthCheckPath: /swagger/index.html
+    envVars:
+      - key: DatabaseProvider
+        value: Postgres
+      - key: InitializeDatabase
+        value: "true"
+      - key: PORT
+        value: "8080"
+      - key: ConnectionStrings__TallerDb
+        fromDatabase:
+          name: taller-db
+          property: connectionString

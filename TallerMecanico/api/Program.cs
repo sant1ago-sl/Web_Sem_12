@@ -43,11 +43,39 @@ builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
 // CORS con un origen concreto (configurable por Cors__AllowedOrigin en la nube)
-var origen = builder.Configuration["Cors:AllowedOrigin"] ?? "http://localhost:5173";
+// Render define RENDER_EXTERNAL_URL (la URL publica del servicio) de forma automatica.
+var origen = builder.Configuration["Cors:AllowedOrigin"]
+    ?? Environment.GetEnvironmentVariable("RENDER_EXTERNAL_URL")
+    ?? "http://localhost:5173";
 builder.Services.AddCors(o => o.AddPolicy("Frontend", p =>
     p.WithOrigins(origen).AllowAnyHeader().AllowAnyMethod()));
 
 var app = builder.Build();
+
+// Primer despliegue en la nube: con InitializeDatabase=true se ejecuta el script SQL de PostgreSQL
+// (scripts/02_esquema_y_datos_postgres.sql) solo si la tabla Vehiculos aun no existe.
+if (provider.Equals("Postgres", StringComparison.OrdinalIgnoreCase) && builder.Configuration.GetValue<bool>("InitializeDatabase"))
+{
+    using var scope = app.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<TallerContext>();
+    try
+    {
+        var existe = await db.Database
+            .SqlQueryRaw<bool>("""SELECT to_regclass('public."Vehiculos"') IS NOT NULL AS "Value" """)
+            .SingleAsync();
+        if (!existe)
+        {
+            var script = await File.ReadAllTextAsync(Path.Combine(AppContext.BaseDirectory, "scripts", "02_esquema_y_datos_postgres.sql"));
+            await db.Database.ExecuteSqlRawAsync(script);
+            app.Logger.LogInformation("Script SQL ejecutado: tablas y datos de ejemplo creados.");
+        }
+        else app.Logger.LogInformation("La base ya tiene las tablas; no se ejecuta el script.");
+    }
+    catch (Exception ex)
+    {
+        app.Logger.LogError(ex, "No se pudo inicializar la base de datos.");
+    }
+}
 
 app.UseDefaultFiles();
 app.UseStaticFiles(); // sirve el panel de pruebas (wwwroot/index.html) en la raiz
@@ -66,6 +94,16 @@ if (!string.Equals(Environment.GetEnvironmentVariable("DISABLE_HTTPS_REDIRECT"),
 app.UseCors("Frontend");
 app.UseAuthorization();
 app.MapControllers();
+
+// Muestra en la consola los enlaces al panel de pruebas y a Swagger al iniciar.
+app.Lifetime.ApplicationStarted.Register(() =>
+{
+    foreach (var url in app.Urls)
+    {
+        app.Logger.LogInformation("Panel de pruebas: {Url}/", url);
+        app.Logger.LogInformation("Swagger:          {Url}/swagger", url);
+    }
+});
 
 app.Run();
 
