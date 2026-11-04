@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using TallerMecanico.Api.Data;
 
 var builder = WebApplication.CreateBuilder(args);

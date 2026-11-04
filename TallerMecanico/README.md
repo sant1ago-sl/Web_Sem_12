@@ -1,4 +1,4 @@
-﻿# Taller Mecánico · Web API REST (ASP.NET Core .NET 10 + EF Core + LINQ)
+# Taller Mecánico · Web API REST (ASP.NET Core .NET 10 + EF Core + LINQ)
 
 Entidades: `Vehiculo` (1) → (N) `Reparacion`. Controladores con `DbContext` directo, Data Annotations, Swagger y CORS con origen concreto.
 Incluye un panel web (`/`) que ejecuta todas las pruebas y muestra los códigos 200, 201, 204, 400, 404 y 409.

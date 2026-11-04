@@ -1,4 +1,4 @@
-﻿# Blueprint de Render: crea la base PostgreSQL gratuita y la API (Docker) conectadas entre si.
+# Blueprint de Render: crea la base PostgreSQL gratuita y la API (Docker) conectadas entre si.
 # En Render: New > Blueprint > elegir este repositorio.
 databases:
   - name: taller-db

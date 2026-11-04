@@ -1,4 +1,4 @@
-﻿@host = https://localhost:7000
+@host = https://localhost:7000
 ### Cambia @host por la URL publicada en la nube para las pruebas finales
 
 GET {{host}}/api/vehiculos
