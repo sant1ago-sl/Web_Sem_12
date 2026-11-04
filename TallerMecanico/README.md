@@ -22,7 +22,7 @@ Incluye un panel web (`/`) que ejecuta todas las pruebas y muestra los códigos 
 1. Ejecutar en `(localdb)\MSSQLLocalDB` los scripts `01` y `02`.
 2. Guardar la cadena de conexión en user-secrets (no se sube al repositorio):
    ```bash
-   dotnet user-secrets set "ConnectionStrings:TallerDb" "Server=(localdb)\MSSQLLocalDB;Database=TallerMecanicoDB;Trusted_Connection=True;TrustServerCertificate=True;" --project TallerMecanico/api
+   dotnet user-secrets set "ConnectionStrings:TallerDb" "<cadena de conexion a tu LocalDB, base TallerMecanicoDB>" --project TallerMecanico/api
    ```
 3. Abrir `TallerMecanico.slnx` en Visual Studio y pulsar F5. Se abre el panel en `http://localhost:5062/`; Swagger en `/swagger`.
 
